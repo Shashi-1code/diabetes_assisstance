@@ -46,8 +46,7 @@ follow_up_questions = {
             ("GlucoseHistory", "Have you had high glucose readings before? (yes/no)"),
             ("GlucoseMedication", "Are you currently taking any diabetes medication? (yes/no)"),
             ("GlucoseFamily", "Do you have any family members with diabetes? (yes/no)"),
-            ("GlucoseDiet", "How would you describe your typical diet? (healthy/moderate/poor)"),
-            ("GlucoseExercise", "How often do you exercise? (never/occasionally/regularly)")
+            ("GlucoseDiet", "How would you describe your typical diet? (healthy/moderate/poor)")
         ],
         "low": [
             ("GlucoseSymptoms", "Are you experiencing any symptoms like dizziness or sweating? (yes/no)"),
@@ -77,14 +76,11 @@ follow_up_questions = {
     },
     "BMI": {
         "high": [
-            ("BMIActivity", "How often do you exercise? (never/occasionally/regularly)"),
             ("BMIDiet", "How would you describe your diet? (healthy/moderate/poor)"),
             ("BMIWeightHistory", "Has your weight changed significantly in the last year? (yes/no)"),
             ("BMIFamily", "Do you have any family members with weight-related health issues? (yes/no)"),
             ("BMISleep", "How many hours of sleep do you typically get? (hours)"),
-            ("BMISedentary", "How many hours do you spend sitting daily? (hours)"),
-            ("BMIMealPattern", "How many meals do you eat per day? (number)"),
-            ("BMISnacking", "How often do you snack between meals? (never/occasionally/frequently)")
+            ("BMISedentary", "How many hours do you spend sitting daily? (hours)")
         ],
         "low": [
             ("BMIAppetite", "Have you experienced any loss of appetite? (yes/no)"),
@@ -382,11 +378,8 @@ def process_follow_up_input(value, field):
                 return 0 <= hours <= 24, hours
             except:
                 return False, "Please provide a valid number of hours (0-24)."
-        elif field in ["GlucoseDiet", "GlucoseExercise"]:
-            if field == "GlucoseDiet":
-                valid_responses = ["healthy", "moderate", "poor"]
-            else:  # GlucoseExercise
-                valid_responses = ["never", "occasionally", "regularly"]
+        elif field == "GlucoseDiet":
+            valid_responses = ["healthy", "moderate", "poor"]
             if value in valid_responses:
                 return True, value
             return False, f"Please choose one of: {', '.join(valid_responses)}"
@@ -415,11 +408,8 @@ def process_follow_up_input(value, field):
     elif field.startswith("BMI"):
         if field in ["BMIAppetite", "BMIWeightHistory", "BMIMedical", "BMISymptoms", "BMIFamily"]:
             return value in ["yes", "no"], value
-        elif field in ["BMIActivity", "BMIDiet"]:
-            if field == "BMIActivity":
-                valid_responses = ["never", "occasionally", "regularly"]
-            else:  # BMIDiet
-                valid_responses = ["healthy", "moderate", "poor"]
+        elif field == "BMIDiet":
+            valid_responses = ["healthy", "moderate", "poor"]
             if value in valid_responses:
                 return True, value
             return False, f"Please choose one of: {', '.join(valid_responses)}"
@@ -429,17 +419,6 @@ def process_follow_up_input(value, field):
                 return 0 <= hours <= 24, hours
             except:
                 return False, "Please provide a valid number of hours (0-24)."
-        elif field == "BMIMealPattern":
-            try:
-                meals = float(value)
-                return 1 <= meals <= 6, meals
-            except:
-                return False, "Please provide a valid number of meals (1-6)."
-        elif field == "BMISnacking":
-            valid_responses = ["never", "occasionally", "frequently"]
-            if value in valid_responses:
-                return True, value
-            return False, f"Please choose one of: {', '.join(valid_responses)}"
     
     elif field.startswith("Age"):
         if field in ["AgeMobility", "AgeSupport"]:
@@ -927,8 +906,6 @@ def predict():
                     message += "  - Given your family history, regular screening is recommended\n"
                 if follow_up_answers.get('GlucoseDiet') in ['moderate', 'poor']:
                     message += "  - Consider consulting a nutritionist for dietary guidance\n"
-                if follow_up_answers.get('GlucoseExercise') in ['never', 'occasionally']:
-                    message += "  - Regular exercise can help manage glucose levels\n"
                 message += "  - Monitor your blood sugar regularly\n\n"
             
             # Add blood pressure-specific recommendations
@@ -949,14 +926,10 @@ def predict():
             # Add BMI-specific recommendations
             if session['answers']['BMI'] > 24.9:
                 message += "• Regarding your BMI:\n"
-                if follow_up_answers.get('BMIActivity') in ['never', 'occasionally']:
-                    message += "  - Start a regular exercise routine\n"
                 if follow_up_answers.get('BMIDiet') in ['moderate', 'poor']:
                     message += "  - Consider consulting a nutritionist\n"
                 if follow_up_answers.get('BMISedentary') and float(follow_up_answers['BMISedentary']) > 8:
                     message += "  - Try to reduce sitting time and take regular breaks\n"
-                if follow_up_answers.get('BMISnacking') == 'frequently':
-                    message += "  - Consider healthier snacking options\n"
                 message += "  - Work with a healthcare provider on a weight management plan\n\n"
             
             # Add age-specific recommendations

@@ -3,23 +3,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score
 import joblib
-import numpy as np
+from preprocess_data import preprocess_diabetes_data
 
-# Load the dataset
-df = pd.read_csv('diabetes.csv')
-
-# Replace zero values with NaN in specific columns
-columns_with_zeros = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
-for col in columns_with_zeros:
-    df.loc[df[col] == 0, col] = np.nan
-
-# Fill missing values with column median
-df.fillna(df.median(), inplace=True)
-
-# Separate features and target
-X = df[['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
-        'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']]
-y = df['Outcome']
+# Preprocess the data
+X, y = preprocess_diabetes_data('diabetes.csv')
 
 # Split the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(
@@ -31,9 +18,18 @@ model.fit(X_train, y_train)
 
 # Evaluate the model
 y_pred = model.predict(X_test)
+print("\nModel Performance:")
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("\nClassification Report:\n", classification_report(y_test, y_pred))
 
-# Save the trained model to a file
+# Save the trained model
 joblib.dump(model, 'diabetes_model.pkl')
-print("Model saved as 'diabetes_model.pkl'")
+print("\nModel saved as 'diabetes_model.pkl'")
+
+# Print feature importance
+feature_names = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness',
+                 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
+importances = model.feature_importances_
+print("\nFeature Importance:")
+for name, importance in zip(feature_names, importances):
+    print(f"{name}: {importance:.3f}")
